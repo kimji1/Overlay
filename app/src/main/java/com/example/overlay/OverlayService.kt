@@ -15,9 +15,14 @@ import android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 
 
 class OverlayService : Service() {
+
+    companion object {
+        const val SECONDS = 5.0
+    }
 
     private var wm: WindowManager? = null
     private var mView: View? = null
@@ -26,6 +31,7 @@ class OverlayService : Service() {
         return null
     }
 
+    @ObsoleteCoroutinesApi
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate() {
         super.onCreate()
@@ -72,8 +78,17 @@ class OverlayService : Service() {
         wm?.addView(mView, params)
     }
 
+    @ObsoleteCoroutinesApi
     private fun startTimer(progressBar: ProgressBar?) {
-
+        TimerUtil.start(SECONDS) { currentSec ->
+            progressBar?.progress = ((currentSec.toDouble() / SECONDS) * 100).toInt()
+            if (progressBar?.progress == 100) {
+                startActivity(Intent(this, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
+                stopSelf()
+            }
+        }
     }
 
     override fun onDestroy() {
