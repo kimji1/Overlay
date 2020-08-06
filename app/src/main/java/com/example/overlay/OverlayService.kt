@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
@@ -16,7 +17,6 @@ import android.widget.Button
 import android.widget.ProgressBar
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-
 
 class OverlayService : Service() {
 
@@ -55,11 +55,12 @@ class OverlayService : Service() {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,  // Android O 이상인 경우 TYPE_APPLICATION_OVERLAY 로 설정
+            else WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
-        )
-        params.gravity = Gravity.CENTER_HORIZONTAL or Gravity.CENTER_VERTICAL
+        ).apply {
+            gravity = Gravity.BOTTOM
+        }
 
         val inflate = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         mView = inflate.inflate(R.layout.overlay_view, null)
@@ -96,6 +97,7 @@ class OverlayService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             stopForeground(true) // Foreground service 종료
         }
+
         if (mView != null) {
             wm?.removeView(mView) // View 초기화
             mView = null
@@ -103,3 +105,8 @@ class OverlayService : Service() {
         wm = null
     }
 }
+
+val Int.dp: Int
+    get() = (this / Resources.getSystem().displayMetrics.density).toInt()
+val Int.px: Int
+    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
